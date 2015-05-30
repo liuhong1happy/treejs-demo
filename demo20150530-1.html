@@ -1,0 +1,128 @@
+<html>
+<head>
+    <title>My first Three.js app</title>
+    <style>
+        body {
+            margin: 0;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <script src="scripts/three.min.js"></script>
+    <script src="scripts/stats.min.js"></script>
+    <script src="scripts/OBJLoader.js"></script>
+<script>
+        //场景，相机，渲染器，形状，材质，立方体
+        var scene, camera, renderer, geometry, material, cube,light,stat;
+        // 管控变量
+        var length = 1500,flag=false,s=0,a=9.8,v=0,max_v=1500;
+        // 实时更新函数
+        var render = function () {
+            //requestAnimationFrame(render);
+            stat.begin();
+
+            // 旋转物体
+            if (flag) {
+                s = v - a / 2;
+                v = v - a;
+                if (v < 50) v = 50;
+
+                length += s * 0.01;
+                if (length>1500) {
+                    flag = false;
+                    v = 1.1;
+                }
+            } else {
+                s = v + a / 2;
+                v = v + a;
+                if (v > max_v) v = max_v;
+                length -= s*0.01;
+                if (length<=25) {
+                    flag = true;
+                    v = max_v * 1.13;
+                }
+            }
+
+            cube.position.y = length;
+
+
+
+            renderer.render(scene, camera);
+            stat.end();
+        };
+
+        // 初始化
+        var Init=function(){
+            // 场景
+            scene = new THREE.Scene();
+            // 相机
+            camera = new THREE.PerspectiveCamera(85, window.innerWidth / window.innerHeight, 0.1, 10000);
+            // z轴正方向
+            camera.position.y = 2500;
+            camera.position.z = 2500;
+            camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+            // 物体
+            geometry = new THREE.SphereGeometry(50, 20, 20);
+            // 材质
+            material = new THREE.MeshPhongMaterial({
+                color: 0xff0000,
+                specular: 0xffff00,
+                shininess: 100
+            });
+            // 立方体
+            cube = new THREE.Mesh(geometry, material);
+            cube.position.y = 1500;
+            // 添加到场景中去
+            scene.add(cube);
+            //地面
+            var plane = new THREE.Mesh(new THREE.PlaneGeometry(2500, 1500, 100, 100), new THREE.MeshPhongMaterial({ color: 0x00a28d }));
+            plane.rotation.x = -Math.PI / 2;
+            scene.add(plane);
+
+            //人物
+            var loader = new THREE.OBJLoader();
+            loader.load('newgirl/newgirl.obj', function (obj) {
+                mesh = obj; //储存到全局变量中
+                mesh.position.y = 300;
+                scene.add(obj);
+            });
+
+            // 定义光线
+            scene.add(new THREE.AmbientLight(0x404040));
+            light2 = new THREE.DirectionalLight(0xffffff, 0.9)
+            light2.position.set(0, 200, 0);
+            scene.add(light2);
+
+
+            //渲染器
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0xffffff);
+            // 页面元素加载
+            document.body.appendChild(renderer.domElement);
+
+            // 状态监测
+            stat = new Stats();
+            stat.domElement.style.position = 'absolute';
+            stat.domElement.style.left = '0px';
+            stat.domElement.style.top = '0px';
+            stat.domElement.style.width = '100px';
+            document.body.appendChild(stat.domElement);
+
+            setInterval(render, 5);
+        }
+
+        Init();
+
+
+
+
+    </script>
+</body>
+</html>
